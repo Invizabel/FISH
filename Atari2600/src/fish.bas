@@ -38,6 +38,7 @@ main
  player1x = player1x - b
  player0y = player0y + 1
 
+ if switchreset then score = 0 : player0x = 16 : player0y = 45 : b = 1 : c = 0
  if switchselect then score = 0 : player0x = 16 : player0y = 45 : b = 1 : c = 0 : goto single
  if !switchbw then COLUBK = $9E : COLUP0 = $2A : COLUP1 = $5C
  if switchbw then COLUBK = $02 : COLUP0 = $0C : COLUP1 = $0C
@@ -47,9 +48,7 @@ main
  goto main
 
 single
- if joy0fire then player0y = player0y - 2 : goto single_done
-single_done
-
+ if joy0fire then player0y = player0y - 2
  if collision(player0, player1) then score = 0 : player0x = 16 : player0y = 45 : b = 1 : c = 0
  if player0y = 100 then score = 0 : player0x = 16 : player0y = 45 : player1x = 150 : b = 1 : c = 0
  if player0y = 0 then score = 0 : player0x = 16 : player0y = 45 : player1x = 150 : b = 1 : c = 0
@@ -59,7 +58,7 @@ single_done
  player1x = player1x - b
  player0y = player0y + 1
 
- if switchselect then score = 0 : player0x = 16 : player0y = 45 : b = 1 : c = 0 : goto main
+ if switchreset then score = 0 : player0x = 16 : player0y = 45 : b = 1 : c = 0 : goto main
  if !switchbw then COLUBK = $9E : COLUP0 = $2A : COLUP1 = $5C
  if switchbw then COLUBK = $02 : COLUP0 = $0C : COLUP1 = $0C
  
