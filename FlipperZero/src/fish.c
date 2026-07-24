@@ -1,12 +1,13 @@
 #include "dolphin/dolphin.h"
 #include <furi.h>
-#include <furi_hal_rtc.h>
 #include <gui/gui.h>
 #include <stdlib.h>
 
 int SCORE = 0;
 int SCORE_BONUS = 1;
 int HIGH_SCORE = 10;
+int LEVEL = 1;
+
 char score_str[16];
 
 int player_x = 6;
@@ -35,7 +36,6 @@ int jellyfish[][2] = {{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{2,3},{9,3},{2,4},{9,4
 
 void collide_rect()
 {
-    
     int player_left = player_x;
     int player_top = player_y - 1;
     int player_right = player_x + 8;
@@ -70,11 +70,12 @@ void collide_rect()
         HIGH_SCORE = 10;
 
         SCORE = 0;
+        LEVEL = 0;
     }
 }
 
 
-void draw_player(Canvas* canvas)
+void draw_player(Canvas * canvas)
 {
     if (is_jumping)
     {
@@ -98,12 +99,12 @@ void draw_player(Canvas* canvas)
     }
 }
 
-void draw_kelp(Canvas* canvas)
+void draw_kelp(Canvas * canvas)
 { 
     if (is_random_kelp)
     {
-        kelp_x_rand = rand() % 2 + 1;
-        kelp_y_rand = rand() % 2 + 1;
+        kelp_x_rand = (SCORE + LEVEL) % 2 + 1;
+        kelp_y_rand = (SCORE + LEVEL) % 2 + 1;
         is_random_kelp = false;
     }
     
@@ -134,12 +135,12 @@ void draw_kelp(Canvas* canvas)
     }
 }
 
-void draw_jellyfish(Canvas* canvas)
+void draw_jellyfish(Canvas * canvas)
 { 
     if (is_random_jellyfish)
     {
-        jellyfish_x_rand = rand() % 2 + 1;
-        jellyfish_y_rand = rand() % 2 + 1;
+        jellyfish_x_rand = (SCORE + LEVEL) % 2 + 1;
+        jellyfish_y_rand = (SCORE + LEVEL) % 2 + 1;
         is_random_jellyfish = false;
     }
     
@@ -170,9 +171,9 @@ void draw_jellyfish(Canvas* canvas)
     }
 }
 
-static void input_callback(InputEvent* event, void* context)
+static void input_callback(InputEvent * event, void * context)
 {
-    FuriMessageQueue* queue = (FuriMessageQueue*)context;
+    FuriMessageQueue * queue = (FuriMessageQueue *)context;
     if(event->type == InputTypeShort || event->type == InputTypeRepeat || event->type == InputTypePress)
     {
         if (event->key == InputKeyOk)
@@ -194,9 +195,11 @@ static void input_callback(InputEvent* event, void* context)
 }
 
 
-static void draw_callback(Canvas* canvas, void* context)
+static void draw_callback(Canvas * canvas, void * context)
 {
     UNUSED(context);
+    furi_delay_us(40000);
+    
     canvas_clear(canvas);
     collide_rect();
     draw_player(canvas);
@@ -209,7 +212,7 @@ static void draw_callback(Canvas* canvas, void* context)
     snprintf(score_str, sizeof(score_str), "%dx", SCORE_BONUS);
     canvas_draw_str(canvas,2,64,score_str);
 
-    if (SCORE >= HIGH_SCORE)
+    if (SCORE >= HIGH_SCORE && SCORE_BONUS < 10)
     {
         HIGH_SCORE += 10;
         SCORE_BONUS += 1;
@@ -220,21 +223,16 @@ static void draw_callback(Canvas* canvas, void* context)
 
 int main()
 {
-    DateTime dt;
-    furi_hal_rtc_get_datetime(&dt);
-    unsigned int seed = dt.hour * 3600 + dt.minute * 60 + dt.second;
-    srand(seed);
+    kelp_x_rand = (SCORE + LEVEL) % 2 + 1;
+    kelp_y_rand = (SCORE + LEVEL) % 2 + 1;
+    jellyfish_x_rand = (SCORE + LEVEL) % 2 + 1;
+    jellyfish_y_rand = (SCORE + LEVEL) % 2 + 1;
 
-    kelp_x_rand = rand() % 2 + 1;
-    kelp_y_rand = rand() % 2 + 1;
-    jellyfish_x_rand = rand() % 2 + 1;
-    jellyfish_y_rand = rand() % 2 + 1;
-
-    FuriMessageQueue* queue = furi_message_queue_alloc(8, sizeof(InputEvent));
-    ViewPort* view_port = view_port_alloc();
+    FuriMessageQueue * queue = furi_message_queue_alloc(8, sizeof(InputEvent));
+    ViewPort * view_port = view_port_alloc();
     view_port_draw_callback_set(view_port, draw_callback, NULL);
     view_port_input_callback_set(view_port, input_callback, queue);
-    Gui* gui = (Gui*)furi_record_open("gui");
+    Gui* gui = (Gui *)furi_record_open("gui");
     gui_add_view_port(gui, view_port, GuiLayerFullscreen);
     dolphin_deed(DolphinDeedPluginGameStart);
     InputEvent event;
