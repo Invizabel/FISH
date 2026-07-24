@@ -2,7 +2,7 @@ sourcecode:
   type: git
   location:
     origin: https://github.com/Invizabel/fish
-    commit_sha: 0937cce02a79c61149245f52984cdf6e068ea1a3
+    commit_sha: 2eabb12b1bdf79c05134f8abc5d6b530589cbb73
     subdir: FlipperZero
 short_description: "A game about a fish"
 changelog: "@./docs/changelog.md"
