@@ -5,7 +5,7 @@
 
 // Scoring
 int SCORE = 0;
-int MAX_SWIM = 2;
+int MAX_SWIM = 1;
 int HIGH_SCORE = 10;
 int LEVEL = 1;
 
@@ -45,8 +45,8 @@ void collide_rect()
     int player_right = player_x + 8;
     int player_bottom = player_y + 7;
 
-    int kelp_left = kelp_x - kelp_x_rand * 8 + 4;
-    int kelp_top = kelp_y - kelp_y_rand * 8 - 4;
+    int kelp_left = kelp_x - kelp_x_rand * 8;
+    int kelp_top = kelp_y - kelp_y_rand * 8;
     int kelp_right = kelp_x;
     int kelp_bottom = kelp_y + 4;
 
@@ -130,7 +130,7 @@ void draw_player(Canvas * canvas)
 
     else
     {
-        if (MAX_SWIM == 2)
+        if (MAX_SWIM == 3)
         {
             player_y += 2;
         }
@@ -239,7 +239,7 @@ static void draw_callback(Canvas * canvas, void * context)
     snprintf(score_str, sizeof(score_str), "%d", SCORE);
     canvas_draw_str(canvas,2,8,score_str);
 
-    if (SCORE >= HIGH_SCORE && MAX_SWIM < 6)
+    if (SCORE >= HIGH_SCORE && MAX_SWIM < 5)
     {
         HIGH_SCORE += 100;
         MAX_SWIM += 2;
