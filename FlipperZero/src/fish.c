@@ -1,5 +1,6 @@
 #include "dolphin/dolphin.h"
 #include <furi.h>
+#include <furi_hal.h>
 #include <gui/gui.h>
 #include <stdlib.h>
 
@@ -37,6 +38,17 @@ int player[][2] = {{7,4},{8,4},{3,5},{4,5},{6,5},{9,5},{3,6},{5,6},{10,6},{3,7},
 int kelp[][2] = {{2,2},{4,2},{3,3},{2,4},{4,4},{3,5},{2,6},{4,6},{3,7},{2,8},{4,8},{3,9}};
 int jellyfish[][2] = {{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{2,3},{9,3},{2,4},{9,4},{3,5},{4,5},{5,5},{6,5},{7,5},{8,5},{3,6},{6,6},{8,6},{4,7},{6,7},{9,7},{2,8},{4,8},{7,8},{3,9}};
 int health[][2] = {{5,3},{6,3},{7,3},{4,4},{7,4},{8,4},{3,5},{5,5},{6,5},{8,5},{9,5},{3,6},{5,6},{9,6},{10,6},{3,7},{4,7},{7,7},{8,7},{10,7},{4,8},{5,8},{7,8},{11,8},{5,9},{6,9},{11,9},{6,10},{7,10},{11,10},{8,11},{9,11},{10,11},{12,11},{13,11},{11,12},{13,12},{11,13},{12,13}};
+
+void play_beep(void)
+{
+    if(furi_hal_speaker_acquire(40))
+    {
+        furi_hal_speaker_start(1000.0f, 0.75f);
+        furi_delay_ms(40);
+        furi_hal_speaker_stop();
+        furi_hal_speaker_release();
+    }
+}
 
 void collide_rect()
 {
@@ -182,6 +194,7 @@ void draw_kelp(Canvas * canvas)
 
     if (kelp_x <= -8)
     {
+        play_beep();
         kelp_x = 124;
         is_random_kelp = true;
         SCORE += 10;
@@ -218,6 +231,7 @@ void draw_jellyfish(Canvas * canvas)
 
     if (jellyfish_x <= -8)
     {
+        play_beep();
         jellyfish_x = 124;
         is_random_jellyfish = true;
         SCORE += 10;
@@ -227,7 +241,7 @@ void draw_jellyfish(Canvas * canvas)
 static void draw_callback(Canvas * canvas, void * context)
 {
     UNUSED(context);
-    furi_delay_us(40000);
+    furi_delay_ms(40);
     
     canvas_clear(canvas);
     collide_rect();
@@ -283,19 +297,21 @@ static void input_callback(InputEvent * event, void * context)
 
 int main()
 {
+    // Declare initial size of jellyfish bloom and kelp blobs
     kelp_x_rand = (SCORE + LEVEL) % 3 + 1;
     kelp_y_rand = (SCORE + LEVEL) % 3 + 1;
     jellyfish_x_rand = (SCORE + LEVEL) % 3 + 1;;
     jellyfish_y_rand = (SCORE + LEVEL) % 3 + 1;
 
+    // Gui stuff
     FuriMessageQueue * queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     ViewPort * view_port = view_port_alloc();
     view_port_draw_callback_set(view_port, draw_callback, NULL);
     view_port_input_callback_set(view_port, input_callback, queue);
-    Gui* gui = (Gui *)furi_record_open("gui");
+    Gui * gui = (Gui *)furi_record_open("gui");
     gui_add_view_port(gui, view_port, GuiLayerFullscreen);
     dolphin_deed(DolphinDeedPluginGameStart);
-    
+
     InputEvent event;
     
     bool running = true;
@@ -311,6 +327,7 @@ int main()
         view_port_update(view_port);
     }
 
+    // Free furi stuff
     view_port_enabled_set(view_port, false);
     furi_message_queue_free(queue);
     gui_remove_view_port(gui, view_port);
