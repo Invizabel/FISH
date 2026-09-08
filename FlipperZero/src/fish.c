@@ -39,14 +39,25 @@ int kelp[][2] = {{2,2},{4,2},{3,3},{2,4},{4,4},{3,5},{2,6},{4,6},{3,7},{2,8},{4,
 int jellyfish[][2] = {{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{2,3},{9,3},{2,4},{9,4},{3,5},{4,5},{5,5},{6,5},{7,5},{8,5},{3,6},{6,6},{8,6},{4,7},{6,7},{9,7},{2,8},{4,8},{7,8},{3,9}};
 int health[][2] = {{5,3},{6,3},{7,3},{4,4},{7,4},{8,4},{3,5},{5,5},{6,5},{8,5},{9,5},{3,6},{5,6},{9,6},{10,6},{3,7},{4,7},{7,7},{8,7},{10,7},{4,8},{5,8},{7,8},{11,8},{5,9},{6,9},{11,9},{6,10},{7,10},{11,10},{8,11},{9,11},{10,11},{12,11},{13,11},{11,12},{13,12},{11,13},{12,13}};
 
-void play_beep(void)
+// Custom sound track
+bool is_music = true;
+int sound_intro_frequency[] = {1000, 500, 1000, 500, 1000, 500};
+int sound_intro_timing[] = {500, 500, 500, 500, 500, 500};
+
+int sound_score_frequency[] = {750};
+int sound_score_timing[] = {40};
+
+void play_beep(int frequency[], int timing[], int length)
 {
-    if(furi_hal_speaker_acquire(40))
+    for (int i = 0; i < length; i += 1)
     {
-        furi_hal_speaker_start(1000.0f, 0.75f);
-        furi_delay_ms(40);
-        furi_hal_speaker_stop();
-        furi_hal_speaker_release();
+        if(furi_hal_speaker_acquire(40))
+        {
+            furi_hal_speaker_start(frequency[i], 0.5f);
+            furi_delay_ms(timing[i]);
+            furi_hal_speaker_stop();
+            furi_hal_speaker_release();
+        }
     }
 }
 
@@ -106,6 +117,8 @@ void collide_rect()
         player_y = 28;
 
         is_health = false;
+
+        is_music = true;
     }
 }
 
@@ -194,10 +207,11 @@ void draw_kelp(Canvas * canvas)
 
     if (kelp_x <= -8)
     {
-        play_beep();
         kelp_x = 124;
         is_random_kelp = true;
         SCORE += 10;
+
+        play_beep(sound_score_frequency, sound_score_timing, 1);
     }
 }
 
@@ -231,10 +245,11 @@ void draw_jellyfish(Canvas * canvas)
 
     if (jellyfish_x <= -8)
     {
-        play_beep();
         jellyfish_x = 124;
         is_random_jellyfish = true;
         SCORE += 10;
+
+        play_beep(sound_score_frequency, sound_score_timing, 1);
     }
 }
 
@@ -271,6 +286,12 @@ static void draw_callback(Canvas * canvas, void * context)
     }
 
     canvas_commit(canvas);
+
+    if (is_music == true)
+    {
+        is_music = false;
+        play_beep(sound_intro_frequency, sound_intro_timing, 6);
+    }
 }
 
 static void input_callback(InputEvent * event, void * context)
